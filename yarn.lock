@@ -100,6 +100,13 @@
     "@nodelib/fs.scandir" "2.1.5"
     fastq "^1.6.0"
 
+"@originbyte/js-sdk@^0.3.6":
+  version "0.3.6"
+  resolved "https://registry.yarnpkg.com/@originbyte/js-sdk/-/js-sdk-0.3.6.tgz#7efae025b83f76db779f3b0cd2f3d650ac21569a"
+  integrity sha512-C+FVZTdMKLmEX3xLlIvPNRv18aK1TsA80HyUf96U5CTAeo8z3hbaJe/PSpLjv3yR/v1zc7fKJ/Yz/cXqHSadDA==
+  dependencies:
+    "@mysten/sui.js" "^0.13.0"
+
 "@scure/base@~1.1.0":
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/@scure/base/-/base-1.1.1.tgz#ebb651ee52ff84f420097055f4bf46cfba403938"
