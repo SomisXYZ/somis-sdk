@@ -3,9 +3,85 @@ var __name = (target, value) => __defProp(target, "name", { value, configurable:
 
 // src/lib.ts
 import { Coin } from "@mysten/sui.js";
-import { ArtNftParser, CollectionParser, NftClient } from "@originbyte/js-sdk";
+import { NftClient } from "@originbyte/js-sdk";
 import DataLoader from "dataloader";
 import LRUCache from "lru-cache";
+var ArtNftRegex = /(0x[a-f0-9]{40})::nft::Nft<0x[a-f0-9]{40}::([a-zA-Z_]{1,})::([a-zA-Z_]{1,}), 0x[a-f0-9]{40}::([a-zA-Z_]{1,}::[a-zA-Z_]{1,})>/;
+var CollectionRegex = /(0x[a-f0-9]{40})::collection::Collection<0x[a-f0-9]{40}::([a-zA-Z_]{1,})::([a-zA-Z_]{1,}), 0x[a-f0-9]{40}::std_collection::StdMeta>/;
+var parseObjectOwner = /* @__PURE__ */ __name((owner) => {
+  let ownerAddress = "";
+  if (typeof owner === "object") {
+    if ("AddressOwner" in owner) {
+      ownerAddress = owner.AddressOwner;
+    }
+    if ("ObjectOwner" in owner) {
+      ownerAddress = owner.ObjectOwner;
+    }
+  }
+  return ownerAddress;
+}, "parseObjectOwner");
+var ArtNftParser = {
+  parser: (data, suiData, _) => {
+    if (typeof _.details === "object" && "data" in _.details) {
+      const { owner } = _.details;
+      const matches = suiData.data.type.match(ArtNftRegex);
+      if (!matches) {
+        return void 0;
+      }
+      const packageObjectId = matches[1];
+      const packageModule = matches[2];
+      const packageModuleClassName = matches[3];
+      const nftType = matches == null ? void 0 : matches[4];
+      return {
+        name: data.data.fields.name,
+        collectionId: data.data.fields.collection_id,
+        attributes: {},
+        url: data.data.fields.url,
+        owner,
+        ownerAddress: parseObjectOwner(owner),
+        type: suiData.data.dataType,
+        id: _.details.reference.objectId,
+        packageObjectId,
+        packageModule,
+        packageModuleClassName,
+        nftType,
+        rawResponse: _
+      };
+    }
+    return void 0;
+  },
+  regex: ArtNftRegex
+};
+var CollectionParser = {
+  parser: (data, suiData, _) => {
+    if (typeof _.details === "object" && "data" in _.details) {
+      const matches = suiData.data.type.match(CollectionRegex);
+      if (!matches) {
+        return void 0;
+      }
+      const packageObjectId = matches[1];
+      const packageModule = matches[2];
+      const packageModuleClassName = matches[3];
+      return {
+        name: data.name,
+        description: data.description,
+        creators: data.creators,
+        symbol: data.symbol,
+        receiver: data.receiver,
+        mintAuthorityId: data.mint_authority,
+        type: suiData.data.dataType,
+        id: _.details.reference.objectId,
+        tags: [],
+        rawResponse: _,
+        packageObjectId,
+        packageModule,
+        packageModuleClassName
+      };
+    }
+    return void 0;
+  },
+  regex: CollectionRegex
+};
 async function getNFTByOwner(address) {
   const nftClient = new NftClient();
   return await nftClient.fetchAndParseObjectsForAddress(address, ArtNftParser);

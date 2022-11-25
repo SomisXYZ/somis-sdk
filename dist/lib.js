@@ -43,9 +43,85 @@ var import_sui = require("@mysten/sui.js");
 var import_js_sdk = require("@originbyte/js-sdk");
 var import_dataloader = __toESM(require("dataloader"));
 var import_lru_cache = __toESM(require("lru-cache"));
+var ArtNftRegex = /(0x[a-f0-9]{40})::nft::Nft<0x[a-f0-9]{40}::([a-zA-Z_]{1,})::([a-zA-Z_]{1,}), 0x[a-f0-9]{40}::([a-zA-Z_]{1,}::[a-zA-Z_]{1,})>/;
+var CollectionRegex = /(0x[a-f0-9]{40})::collection::Collection<0x[a-f0-9]{40}::([a-zA-Z_]{1,})::([a-zA-Z_]{1,}), 0x[a-f0-9]{40}::std_collection::StdMeta>/;
+var parseObjectOwner = /* @__PURE__ */ __name((owner) => {
+  let ownerAddress = "";
+  if (typeof owner === "object") {
+    if ("AddressOwner" in owner) {
+      ownerAddress = owner.AddressOwner;
+    }
+    if ("ObjectOwner" in owner) {
+      ownerAddress = owner.ObjectOwner;
+    }
+  }
+  return ownerAddress;
+}, "parseObjectOwner");
+var ArtNftParser = {
+  parser: (data, suiData, _) => {
+    if (typeof _.details === "object" && "data" in _.details) {
+      const { owner } = _.details;
+      const matches = suiData.data.type.match(ArtNftRegex);
+      if (!matches) {
+        return void 0;
+      }
+      const packageObjectId = matches[1];
+      const packageModule = matches[2];
+      const packageModuleClassName = matches[3];
+      const nftType = matches == null ? void 0 : matches[4];
+      return {
+        name: data.data.fields.name,
+        collectionId: data.data.fields.collection_id,
+        attributes: {},
+        url: data.data.fields.url,
+        owner,
+        ownerAddress: parseObjectOwner(owner),
+        type: suiData.data.dataType,
+        id: _.details.reference.objectId,
+        packageObjectId,
+        packageModule,
+        packageModuleClassName,
+        nftType,
+        rawResponse: _
+      };
+    }
+    return void 0;
+  },
+  regex: ArtNftRegex
+};
+var CollectionParser = {
+  parser: (data, suiData, _) => {
+    if (typeof _.details === "object" && "data" in _.details) {
+      const matches = suiData.data.type.match(CollectionRegex);
+      if (!matches) {
+        return void 0;
+      }
+      const packageObjectId = matches[1];
+      const packageModule = matches[2];
+      const packageModuleClassName = matches[3];
+      return {
+        name: data.name,
+        description: data.description,
+        creators: data.creators,
+        symbol: data.symbol,
+        receiver: data.receiver,
+        mintAuthorityId: data.mint_authority,
+        type: suiData.data.dataType,
+        id: _.details.reference.objectId,
+        tags: [],
+        rawResponse: _,
+        packageObjectId,
+        packageModule,
+        packageModuleClassName
+      };
+    }
+    return void 0;
+  },
+  regex: CollectionRegex
+};
 async function getNFTByOwner(address) {
   const nftClient = new import_js_sdk.NftClient();
-  return await nftClient.fetchAndParseObjectsForAddress(address, import_js_sdk.ArtNftParser);
+  return await nftClient.fetchAndParseObjectsForAddress(address, ArtNftParser);
 }
 __name(getNFTByOwner, "getNFTByOwner");
 async function getNFTById(nftId) {
@@ -58,7 +134,7 @@ async function getNFTCollection(collectionId) {
 __name(getNFTCollection, "getNFTCollection");
 var collectionDataLoader = new import_dataloader.default(async (collectionIds) => {
   const nftClient = new import_js_sdk.NftClient();
-  const result = await nftClient.fetchAndParseObjectsById(collectionIds, import_js_sdk.CollectionParser);
+  const result = await nftClient.fetchAndParseObjectsById(collectionIds, CollectionParser);
   return result;
 }, {
   cacheMap: new import_lru_cache.default({
@@ -67,7 +143,7 @@ var collectionDataLoader = new import_dataloader.default(async (collectionIds) =
 });
 var nftDataLoader = new import_dataloader.default(async (nftIds) => {
   const nftClient = new import_js_sdk.NftClient();
-  const result = await nftClient.fetchAndParseObjectsById(nftIds, import_js_sdk.ArtNftParser);
+  const result = await nftClient.fetchAndParseObjectsById(nftIds, ArtNftParser);
   return nftIds.map((id) => {
     var _a;
     return (_a = result.find((item) => (item == null ? void 0 : item.id) === id)) != null ? _a : null;
