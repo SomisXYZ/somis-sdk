@@ -1,5 +1,5 @@
 {
-    "name": "sui-js-sdk",
+    "name": "@releap/sui-js-sdk",
     "version": "1.0.0",
     "main": "./dist/lib.js",
     "license": "MIT",
