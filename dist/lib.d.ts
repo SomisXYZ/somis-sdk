@@ -1,24 +1,31 @@
 import { SignableTransaction, SuiTransactionResponse, JsonRpcProvider } from '@mysten/sui.js';
 export * from '@mysten/sui.js';
-import { ArtNft, NftCollection } from '@originbyte/js-sdk';
+import { NftClient, NftCollection, ArtNft } from '@originbyte/js-sdk';
 export * from '@originbyte/js-sdk';
 import DataLoader from 'dataloader';
 
 interface Wallet {
     signAndExecuteTransaction(transaction: SignableTransaction): Promise<SuiTransactionResponse>;
 }
-declare function getNFTByOwner(address: string): Promise<ArtNft[]>;
-declare function getNFTById(nftId: string): Promise<ArtNft | null>;
-declare function getNFTCollection(collectionId: string): Promise<NftCollection | null>;
-declare const collectionDataLoader: DataLoader<string, NftCollection, string>;
-declare const nftDataLoader: DataLoader<string, ArtNft, string>;
-declare function buyFromLaunchpad(provider: JsonRpcProvider, wallet: Wallet, options: {
-    launchpadId: string;
-    buyer: string;
-}): Promise<void>;
-declare function claimCertificate(provider: JsonRpcProvider, wallet: Wallet, address: string, packageObjectId: string): Promise<void>;
-declare function listNFT(packageObjectId: string, marketplaceId: string, item: ArtNft, price: string, wallet: Wallet): Promise<string | undefined>;
-declare function cancelNFT(packageObjectId: string, marketplace: string, listingKey: string, wallet: Wallet): Promise<void>;
-declare function buyNFT(provider: JsonRpcProvider, packageObjectId: string, marketplace: string, listingKey: string, price: string, wallet: Wallet, buyerAddress: string): Promise<void>;
+declare class SuiNftService {
+    private readonly provider;
+    nftClient: NftClient;
+    collectionDataLoader: DataLoader<string, NftCollection | null>;
+    nftDataLoader: DataLoader<string, ArtNft | null>;
+    constructor(provider: JsonRpcProvider);
+    getNFTByOwner(address: string): Promise<ArtNft[]>;
+    getNFTById(nftId: string, reload?: boolean): Promise<ArtNft | null>;
+    isNftListed(nftId: string, marketplaceId: string): Promise<boolean>;
+    getNFTByIds(nftIds: string[]): Promise<(ArtNft | null)[]>;
+    getNFTCollection(collectionId: string): Promise<NftCollection | null>;
+    buyFromLaunchpad(wallet: Wallet, options: {
+        launchpadId: string;
+        buyer: string;
+    }): Promise<void>;
+    claimCertificate(wallet: Wallet, address: string, packageObjectId: string): Promise<void>;
+    listNFT(packageObjectId: string, marketplaceId: string, item: ArtNft, price: string, wallet: Wallet): Promise<string | undefined>;
+    buyNFT(packageObjectId: string, marketplace: string, listingKey: string, price: string, wallet: Wallet, buyerAddress: string): Promise<void>;
+    cancelListing(packageObjectId: string, marketplace: string, listingKey: string, wallet: Wallet): Promise<void>;
+}
 
-export { Wallet, buyFromLaunchpad, buyNFT, cancelNFT, claimCertificate, collectionDataLoader, getNFTById, getNFTByOwner, getNFTCollection, listNFT, nftDataLoader };
+export { SuiNftService, Wallet };
