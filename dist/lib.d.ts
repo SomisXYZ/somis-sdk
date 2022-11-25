@@ -1,5 +1,7 @@
 import { SignableTransaction, SuiTransactionResponse, JsonRpcProvider } from '@mysten/sui.js';
+export * from '@mysten/sui.js';
 import { ArtNft, NftCollection } from '@originbyte/js-sdk';
+export * from '@originbyte/js-sdk';
 import DataLoader from 'dataloader';
 
 interface Wallet {

@@ -18,6 +18,9 @@ import {
 import DataLoader from 'dataloader'
 import LRUCache from 'lru-cache'
 
+export * from '@originbyte/js-sdk'
+export * from '@mysten/sui.js'
+
 export interface Wallet {
     signAndExecuteTransaction(transaction: SignableTransaction): Promise<SuiTransactionResponse>
 }
