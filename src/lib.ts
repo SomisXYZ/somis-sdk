@@ -50,7 +50,7 @@ export async function buyFromLaunchpad(
     wallet: Wallet,
     options: { launchpadId: string; buyer: string },
 ) {
-    const client = new NftClient(provider)
+    const client = new NftClient(provider as any)
     const markets = await client.getMarketsByParams({ objectIds: [options.launchpadId] })
     if (markets[0]) {
         const market = markets[0]
@@ -86,7 +86,7 @@ export async function claimCertificate(
     address: string,
     packageObjectId: string,
 ) {
-    const client = new NftClient(provider)
+    const client = new NftClient(provider as any)
     const certificates = (await client.getNftCertificatesForAddress(`0x${address}`)).filter(
         (_) => _.data.packageObjectId === packageObjectId,
     )

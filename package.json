@@ -18,7 +18,7 @@
         "type-check": "tsc -p ./tsconfig.json --noEmit"
     },
     "dependencies": {
-        "@mysten/sui.js": "^0.13.0",
+        "@mysten/sui.js": "^0.16.0",
         "@originbyte/js-sdk": "^0.3.14",
         "dataloader": "^2.1.0",
         "lru-cache": "^7.14.1"
